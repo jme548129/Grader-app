@@ -1,5 +1,5 @@
-// Ilagay dito ang Supabase URL at anon key (Project Settings > API)
+
 window.GRADER_CONFIG = {
-  SUPABASE_URL: 'YOUR_SUPABASE_URL',
-  SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY'
+  SUPABASE_URL: 'https://yffyrgyanymsqbugdmeb.supabase.co',
+  SUPABASE_ANON_KEY: 'ILAGAY_DITO_ANG_PUBLISHABLE_KEY_MO'
 };
