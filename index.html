@@ -265,31 +265,32 @@ function scan(im){
  if(mk.some(v=>!v)){msg('Hindi makita ang apat na itim na marker sa kanto. Kunan ulit nang kita ang buong papel, diretso, at maliwanag.');return}
  // Map the four detected page markers to the printed A4 template.
  const h=homog(MK,mk.map(v=>v.p)),P=pos(S.n),ans=[],hits=[];
- const sample=(px,py,r0,r1)=>{let sum=0,n=0;
-  const r=Math.max(1,r1);
-  for(let yy=Math.floor(py-r);yy<=py+r;yy++)for(let xx=Math.floor(px-r);xx<=px+r;xx++){
-   const rr=Math.hypot(xx-px,yy-py);
-   if(rr<r0||rr>r1||xx<0||yy<0||xx>=W||yy>=H)continue;
-   sum+=g[yy*W+xx];n++}
-  return n?sum/n:255};
+ const sample=(px,py,r0,r1)=>{let sum=0,n=0,dark=0;
+  const r=Math.max(1,r1),rr0=r0*r0,rr1=r1*r1;
+  for(let yy=Math.max(0,Math.floor(py-r));yy<=Math.min(H-1,Math.ceil(py+r));yy++)for(let xx=Math.max(0,Math.floor(px-r));xx<=Math.min(W-1,Math.ceil(px+r));xx++){
+   const dx=xx-px,dy=yy-py,rr=dx*dx+dy*dy;
+   if(rr<rr0||rr>rr1)continue;
+   sum+=g[yy*W+xx];n++;if(bin[yy*W+xx])dark++}
+  return {mean:n?sum/n:255,dark:n?dark/n:0}};
  const metric=(cx,cy,mm)=>{const [px,py]=warp(h,cx,cy),[qx,qy]=warp(h,cx+mm,cy),[rx,ry]=warp(h,cx,cy+mm);
   const scale=(Math.hypot(qx-px,qy-py)+Math.hypot(rx-px,ry-py))/2;
-  // Center ink must be darker than the paper immediately around the bubble.
-  const center=sample(px,py,0,scale*.38);
-  const ring=sample(px,py,scale*.58,scale*.88);
-  const contrast=(ring-center)/255;
-  const centerDark=(255-center)/255;
-  return .78*contrast+.22*centerDark};
+  // Measure ink inside the bubble, excluding the printed circular outline.
+  const core=sample(px,py,0,scale*.48);
+  const mid=sample(px,py,scale*.53,scale*.76);
+  const coreDark=(255-core.mean)/255;
+  const contrast=Math.max(0,(mid.mean-core.mean)/180);
+  // Binary ink coverage is less sensitive to paper tint than raw brightness alone.
+  return .62*core.dark+.25*Math.min(1,contrast)+.13*coreDark};
  P.forEach((p,i)=>{const scores=p.xs.map(cx=>metric(cx,p.y,2.8));
   const order=scores.map((v,j)=>({v,j})).sort((a,b)=>b.v-a.v);
   const strongest=order[0],second=order[1];
   // Reject unfilled bubbles, faint marks, and multiple/ambiguous selections.
-  const marked=strongest.v>.16&&strongest.v-second.v>.085?[strongest.j]:[];
+  const marked=strongest.v>.20&&strongest.v-second.v>.075?[strongest.j]:[];
   ans.push(marked.length===1?L[marked[0]]:'');
   if(marked.length===1)hits.push([i,marked[0],warp(h,p.xs[marked[0]],p.y),metric(p.xs[marked[0]],p.y,2.8)])});
  hits.forEach(([i,j,[px,py]])=>{const ok=S.key[i]&&L[j]===S.key[i];x.lineWidth=Math.max(2,W/450);x.strokeStyle=!S.key[i]?'#888':ok?'#1B9E5A':'#E0343F';x.beginPath();x.arc(px,py,Math.max(5,W/180),0,Math.PI*2);x.stroke()});
  S.cur={a:ans};if(S.idLen){$('sid').value=''}const found=ans.filter(Boolean).length;
- msg(`Nabasa ang ${found} sa ${S.n} items. Ang blanko ay hindi tiyak na nabasa—i-tap para itama. ${S.idLen?'Ilagay nang mano-mano ang School ID / LRN.':''}`);drawEditor()}
+ msg(`Nabasa ang ${found} sa ${S.n} items. Ang blanko ay hindi tiyak o malabo ang shade—i-review ang mga ito bago i-save. ${S.idLen?'Ilagay nang mano-mano ang School ID / LRN.':''}`);drawEditor()}
 
 function drawEditor(){if(!S.cur)return;$('editor').hidden=false;
  chips($('curChips'),S.cur.a,(v,i)=>S.key[i]?(v===S.key[i]?'ok':'bad'):'');
