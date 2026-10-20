@@ -47,6 +47,7 @@
       return "Gumamit ng password na hindi bababa sa 6 na character.";
     if (/failed to fetch|network/i.test(m))
       return "Hindi makakonekta sa Supabase. Suriin ang internet at ang Supabase URL/key sa config.js.";
+    if (/timeout/i.test(m)) return m;
     return m || "Hindi natuloy ang request. Subukan muli mamaya.";
   }
   $("aB").onclick = async () => {
@@ -61,10 +62,13 @@
       $("aM").textContent = "Ilagay ang password na hindi bababa sa 6 na character."; return;
     }
     busy = true; mode();
+    $("aM").textContent = "Sinusuri ang account…";
     try {
-      const result = up
-        ? await sb.auth.signUp({ email, password, options: { data: { full_name: $("aN").value.trim(), school: $("aSc").value.trim() } } })
-        : await sb.auth.signInWithPassword({ email, password });
+      const request = up
+        ? sb.auth.signUp({ email, password, options: { data: { full_name: $("aN").value.trim(), school: $("aSc").value.trim() } } })
+        : sb.auth.signInWithPassword({ email, password });
+      const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Nag-timeout ang koneksyon sa Supabase. I-refresh ang page at subukan muli.")), 15000));
+      const result = await Promise.race([request, timeout]);
       if (result.error) { $("aM").textContent = friendlyError(result.error.message); return; }
       if (up && !result.data.session) {
         up = false; mode();
