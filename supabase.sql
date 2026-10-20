@@ -1,3 +1,4 @@
+-- GradeScan / Grader database setup. Safe to run again.
 create table if not exists profiles(
   id uuid primary key references auth.users on delete cascade,
   email text, full_name text, school text,
@@ -10,8 +11,15 @@ create table if not exists results(
   user_id uuid default auth.uid() references auth.users on delete cascade,
   exam_type text, exam_title text, student_id text, student_name text,
   score int, total int, answers jsonb,
+  client_id text,
+  answer_key jsonb,
   created_at timestamptz default now()
 );
+alter table results add column if not exists client_id text;
+alter table results add column if not exists answer_key jsonb;
+create unique index if not exists results_user_client_id_unique
+  on results(user_id, client_id) where client_id is not null;
+
 create table if not exists admins(user_id uuid primary key references auth.users on delete cascade);
 
 alter table profiles enable row level security;
@@ -46,7 +54,6 @@ select id,email,raw_user_meta_data->>'full_name',raw_user_meta_data->>'school'
 from auth.users
 on conflict (id) do nothing;
 
-insert into admins
-select id from auth.users
-where email = 'jme548129@gmail.com'
+insert into admins(user_id)
+select id from auth.users where email = 'jme548129@gmail.com'
 on conflict do nothing;
