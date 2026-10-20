@@ -31,7 +31,6 @@
     $("aB").disabled = busy;
     $("aW").disabled = busy;
     $("aW").textContent = up ? "May account na? Mag-login" : "Wala pang account? Mag-sign up";
-    $("aM").textContent = "";
   }
   $("aW").onclick = () => { if (busy) return; up = !up; mode(); };
   function friendlyError(message) {
