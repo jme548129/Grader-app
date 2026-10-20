@@ -168,7 +168,7 @@ nav button.on{background:color-mix(in srgb,var(--pri) 14%,transparent);color:var
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
-<script src="cloud.js?v=20261020-localmode1"></script>
+<script src="cloud.js?v=20261020-scancenter1"></script>
 <script>
 const L=['A','B','C','D','E'],CY=['',...L];
 const S={n:20,key:[],res:[],cur:null,ex:{type:'Summative',title:''},idLen:1};
@@ -263,12 +263,21 @@ function scan(im){
  const h=homog(MK,mk.map(v=>v.p)),P=pos(S.n),ans=[],hits=[];
  const fill=(cx,cy,rm)=>{const[px,py]=warp(h,cx,cy),[qx,qy]=warp(h,cx+rm,cy),r=Math.hypot(qx-px,qy-py);let n=0,dk=0;for(let yy=Math.floor(py-r);yy<=py+r;yy++)for(let xx=Math.floor(px-r);xx<=px+r;xx++){if((xx-px)**2+(yy-py)**2>r*r||xx<0||yy<0||xx>=W||yy>=H)continue;n++;dk+=bin[yy*W+xx]}return n?dk/n:0};
  // School ID / LRN is handwritten, so it must be entered manually in the editor.
- P.forEach((p,i)=>{const marked=[];
-  p.xs.forEach((cx,j)=>{const[px,py]=warp(h,cx,p.y),[qx,qy]=warp(h,cx+2.8,p.y),r=Math.hypot(qx-px,qy-py)*.52;
-   let n=0,dk=0;for(let yy=Math.floor(py-r);yy<=py+r;yy++)for(let xx=Math.floor(px-r);xx<=px+r;xx++){
-    if((xx-px)**2+(yy-py)**2>r*r||xx<0||yy<0||xx>=W||yy>=H)continue;n++;dk+=bin[yy*W+xx]}
-   if(n&&dk/n>.28)marked.push(j)});
-  ans.push(marked.length===1?L[marked[0]]:marked.length?'*':'');
+ P.forEach((p,i)=>{const darkness=[];
+  // Measure the CENTER of each bubble, not its printed outline. Use grayscale
+  // as well as adaptive thresholding so empty circles don't count as answers.
+  p.xs.forEach((cx,j)=>{const[px,py]=warp(h,cx,p.y),[qx,qy]=warp(h,cx+2.8,p.y),rr=Math.hypot(qx-px,qy-py);
+   const r=rr*.34;let n=0,raw=0,ink=0;
+   for(let yy=Math.floor(py-r);yy<=py+r;yy++)for(let xx=Math.floor(px-r);xx<=px+r;xx++){
+    if((xx-px)**2+(yy-py)**2>r*r||xx<0||yy<0||xx>=W||yy>=H)continue;
+    n++;raw+=g[yy*W+xx];ink+=bin[yy*W+xx]}
+   darkness.push(n?((255-raw/n)/255)*.7+(ink/n)*.3:0);
+  });
+  const order=darkness.map((v,j)=>({v,j})).sort((a,b)=>b.v-a.v);
+  const strongest=order[0],second=order[1];
+  // Require a clear winner; ambiguous/multiple shading is sent for manual review.
+  const marked=strongest.v>.30&&strongest.v-second.v>.075?[strongest.j]:[];
+  ans.push(marked.length===1?L[marked[0]]:'');
   if(marked.length===1)hits.push([i,marked[0],warp(h,p.xs[marked[0]],p.y)])});
  hits.forEach(([i,j,[px,py]])=>{const ok=S.key[i]&&L[j]===S.key[i];x.lineWidth=4;x.strokeStyle=!S.key[i]?'#888':ok?'#1B9E5A':'#E0343F';x.beginPath();x.arc(px,py,Math.hypot(...warp(h,0,0).map((v,q)=>v-warp(h,2.8,0)[q]))*1.1||10,0,7);x.stroke()});
  S.cur={a:ans};if(S.idLen){$('sid').value=''}const found=ans.filter(Boolean).length;
