@@ -264,10 +264,10 @@ function scan(im){
  const fill=(cx,cy,rm)=>{const[px,py]=warp(h,cx,cy),[qx,qy]=warp(h,cx+rm,cy),r=Math.hypot(qx-px,qy-py);let n=0,dk=0;for(let yy=Math.floor(py-r);yy<=py+r;yy++)for(let xx=Math.floor(px-r);xx<=px+r;xx++){if((xx-px)**2+(yy-py)**2>r*r||xx<0||yy<0||xx>=W||yy>=H)continue;n++;dk+=bin[yy*W+xx]}return n?dk/n:0};
  // School ID / LRN is handwritten, so it must be entered manually in the editor.
  P.forEach((p,i)=>{const marked=[];
-  p.xs.forEach((cx,j)=>{const[px,py]=warp(h,cx,p.y),[qx,qy]=warp(h,cx+2.8,p.y),r=Math.hypot(qx-px,qy-py)*.62;
+  p.xs.forEach((cx,j)=>{const[px,py]=warp(h,cx,p.y),[qx,qy]=warp(h,cx+2.8,p.y),r=Math.hypot(qx-px,qy-py)*.52;
    let n=0,dk=0;for(let yy=Math.floor(py-r);yy<=py+r;yy++)for(let xx=Math.floor(px-r);xx<=px+r;xx++){
     if((xx-px)**2+(yy-py)**2>r*r||xx<0||yy<0||xx>=W||yy>=H)continue;n++;dk+=bin[yy*W+xx]}
-   if(n&&dk/n>.45)marked.push(j)});
+   if(n&&dk/n>.28)marked.push(j)});
   ans.push(marked.length===1?L[marked[0]]:marked.length?'*':'');
   if(marked.length===1)hits.push([i,marked[0],warp(h,p.xs[marked[0]],p.y)])});
  hits.forEach(([i,j,[px,py]])=>{const ok=S.key[i]&&L[j]===S.key[i];x.lineWidth=4;x.strokeStyle=!S.key[i]?'#888':ok?'#1B9E5A':'#E0343F';x.beginPath();x.arc(px,py,Math.hypot(...warp(h,0,0).map((v,q)=>v-warp(h,2.8,0)[q]))*1.1||10,0,7);x.stroke()});
