@@ -119,7 +119,14 @@
         total: Number(r.t) || 0,
         answers: r.a || []
       };
-      const { data, error } = await sb.from("results").upsert(payload, { onConflict: "user_id,client_id" }).select("id,client_id,answer_key,exam_type,exam_title,student_id,student_name,score,total,answers,created_at").single();
+      const { data: existing, error: lookupError } = await sb.from("results")
+        .select("id,client_id")
+        .eq("client_id", payload.client_id)
+        .maybeSingle();
+      if (lookupError) return { error: lookupError.message };
+      if (existing) return { data: existing, alreadySaved: true };
+      const { data, error } = await sb.from("results").insert(payload)
+        .select("id,client_id,answer_key,exam_type,exam_title,student_id,student_name,score,total,answers,created_at").single();
       if (error) return { error: error.message };
       return { data };
     } catch (error) {
