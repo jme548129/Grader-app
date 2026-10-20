@@ -1,6 +1,8 @@
 (function(){
   const C = window.GRADER_CONFIG || {};
-  const on = !!(C.SUPABASE_URL && C.SUPABASE_ANON_KEY && !/YOUR_/.test(C.SUPABASE_URL) && window.supabase);
+  // TEMPORARY LOCAL-ONLY MODE: login/sign-up and cloud sync are paused.
+  // Set this back to the original configuration check when auth is ready.
+  const on = false;
   const Cloud = window.Cloud = { on, saveResult: async () => ({ error: "Cloud is not configured." }), loadResults: async () => [] };
   if (!on) return;
 
