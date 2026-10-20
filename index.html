@@ -204,7 +204,7 @@ $('paste').oninput=e=>{const s=(e.target.value.toUpperCase().match(/[A-E]/g)||[]
 const MK=[[15,15],[195,15],[15,282],[195,282]];
 
 const esc=t=>String(t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-function pos(n){const o=[];for(let i=0;i<n;i++){const c=Math.floor(i/25),r=i%25,x0=22+c*43;o.push({x0,y:82+r*6.8,xs:[0,1,2,3,4].map(k=>x0+12+k*6.5)})}return o}
+function pos(n){const o=[];for(let i=0;i<n;i++){const c=Math.floor(i/25),r=i%25,x0=22+c*43;o.push({x0,y:82+r*6.15,xs:[0,1,2,3,4].map(k=>x0+12+k*6.5)})}return o}
 function drawSheet(){
  let s=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 297" font-family="Arial,sans-serif"><rect width="210" height="297" fill="#fff"/>`;
  MK.forEach(([x,y])=>s+=`<rect x="${x-5}" y="${y-5}" width="10" height="10" fill="#000"/>`);
